@@ -196,6 +196,30 @@ When you define the consumer properties in the supervisor spec, use the dynamic 
 
 When connecting to Kafka, Druid replaces the environment variables with their corresponding values.
 
+##### Amazon MSK with IAM authentication
+
+The `druid-kafka-indexing-service` extension bundles the [Amazon MSK Library for AWS Identity and Access Management](https://github.com/aws/aws-msk-iam-auth), so you can authenticate to an IAM-enabled Amazon MSK cluster without installing anything else. Select the `AWS_MSK_IAM` mechanism in `consumerProperties`:
+
+```json
+"consumerProperties": {
+  "bootstrap.servers": "b-1.example.c1.kafka.us-east-1.amazonaws.com:9098",
+  "security.protocol": "SASL_SSL",
+  "sasl.mechanism": "AWS_MSK_IAM",
+  "sasl.jaas.config": "software.amazon.msk.auth.iam.IAMLoginModule required;",
+  "sasl.client.callback.handler.class": "software.amazon.msk.auth.iam.IAMClientCallbackHandler"
+}
+```
+
+Druid resolves credentials through the default AWS provider chain, so the Overlord and its Peons pick up an EC2 instance profile, a Kubernetes service account role, or credentials in the environment without further configuration. To assume a role instead, name it in `sasl.jaas.config`:
+
+```json
+"sasl.jaas.config": "software.amazon.msk.auth.iam.IAMLoginModule required awsRoleArn=\"arn:aws:iam::123456789012:role/msk-consumer\" awsStsRegion=\"us-east-1\";"
+```
+
+AWS SSO profile credentials are the one source that does not work, because Druid does not ship the AWS SDK artifacts that resolve them. Use any of the other credential sources on a Druid server.
+
+The same configuration works for the [Kafka lookup extractor](../querying/kafka-extraction-namespace.md), under `kafkaProperties` rather than `consumerProperties`.
+
 #### Idle configuration
 
 :::info

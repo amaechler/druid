@@ -75,6 +75,24 @@ This input topic would be consumed from the beginning, and result in a lookup na
 
 Now when a query uses this extraction namespace, the country codes can be mapped to the full country name at query time.
 
+## Amazon MSK with IAM authentication
+
+The `druid-kafka-extraction-namespace` extension bundles the [Amazon MSK Library for AWS Identity and Access Management](https://github.com/aws/aws-msk-iam-auth), so a lookup can read from an IAM-enabled Amazon MSK cluster without installing anything else. Select the `AWS_MSK_IAM` mechanism in `kafkaProperties`:
+
+```json
+"kafkaProperties": {
+  "bootstrap.servers": "b-1.example.c1.kafka.us-east-1.amazonaws.com:9098",
+  "security.protocol": "SASL_SSL",
+  "sasl.mechanism": "AWS_MSK_IAM",
+  "sasl.jaas.config": "software.amazon.msk.auth.iam.IAMLoginModule required;",
+  "sasl.client.callback.handler.class": "software.amazon.msk.auth.iam.IAMClientCallbackHandler"
+}
+```
+
+Credentials come from the default AWS provider chain, so a Druid service picks up an EC2 instance profile, a Kubernetes service account role, or credentials in the environment without further configuration. To assume a role, add `awsRoleArn` and `awsStsRegion` to `sasl.jaas.config`. AWS SSO profile credentials are not supported, because Druid does not ship the AWS SDK artifacts that resolve them.
+
+See [Kafka ingestion](../ingestion/kafka-ingestion.md#amazon-msk-with-iam-authentication) for the equivalent supervisor configuration.
+
 ## Tombstones and Deleting Records
 
 The Kafka lookup extractor treats `null` Kafka messages as tombstones. This means that a record on the input topic with a `null` message payload on Kafka will remove the associated key from the lookup map, effectively deleting it.

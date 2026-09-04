@@ -67,6 +67,94 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!--
+      Registers the AWS_MSK_IAM SASL mechanism and the OAUTHBEARER callback handler so that
+      a lookup spec can select them when connecting to an IAM-authenticated Amazon MSK cluster.
+
+      The library's AWS SDK v2 transitives are excluded because druid-aws-common already puts
+      them on the core classpath, which extensions resolve against parent-first by default.
+      Bundling a second copy here would put two versions of the SDK in one JVM. The classes the
+      library actually needs are declared as provided dependencies below so that the requirement
+      is an explicit contract rather than an accident of another module's dependency tree.
+
+      Note that AWS SSO profile credentials are not supported: they would additionally require
+      the sso and ssooidc artifacts, which Druid does not ship. Every other credential source
+      (instance profile, container/IRSA, environment, static keys, assume-role) works.
+    -->
+    <dependency>
+      <groupId>software.amazon.msk</groupId>
+      <artifactId>aws-msk-iam-auth</artifactId>
+      <scope>runtime</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- The AWS SDK v2 artifacts aws-msk-iam-auth resolves against, supplied by druid-aws-common. -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>auth</artifactId>
+      <version>${aws.sdk.v2.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>aws-core</artifactId>
+      <version>${aws.sdk.v2.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sdk-core</artifactId>
+      <version>${aws.sdk.v2.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>endpoints-spi</artifactId>
+      <version>${aws.sdk.v2.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>http-client-spi</artifactId>
+      <version>${aws.sdk.v2.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>profiles</artifactId>
+      <version>${aws.sdk.v2.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>regions</artifactId>
+      <version>${aws.sdk.v2.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sts</artifactId>
+      <version>${aws.sdk.v2.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>utils</artifactId>
+      <version>${aws.sdk.v2.version}</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
