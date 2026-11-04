@@ -402,4 +402,10 @@ public class StringUtilsTest
         StringUtils.nonStrictFormat("%s", "some string containing % %s %d %f")
     );
   }
+
+  @Test
+  public void testDeliberateFailureForQualityGate()
+  {
+    Assertions.fail("Deliberate failure to test the quality-gate job; do not merge.");
+  }
 }
