@@ -108,3 +108,5 @@ On some systems, ensure you use the Python 3.x version of `pip`:
 ```bash
 pip3 install pyyaml
 ```
+
+<!-- Test change for the quality-gate workflow; do not merge. -->
