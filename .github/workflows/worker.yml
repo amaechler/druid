@@ -27,7 +27,7 @@ on:
         type: string
         description: "Script to execute"
       key:
-        required: false
+        required: true
         type: string
         description: "Identifier for job"
       artifact_prefix:

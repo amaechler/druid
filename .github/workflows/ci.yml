@@ -45,8 +45,9 @@ jobs:
               - '!web-console/**'
               - '!website/**'
 
-  run-unit-tests:
-    name: "unit tests(main)"
+  unit-tests:
+    # A matrix job's name must use the matrix, or GitHub appends every matrix value to it.
+    name: "unit-tests-jdk${{ matrix.jdk }}-[${{ matrix.pattern }}]"
     needs: changes
     if: ${{ needs.changes.outputs.java == 'true' }}
     strategy:
@@ -59,12 +60,11 @@ jobs:
       script: .github/scripts/run_unit-tests -Dtest=!QTest,'${{ matrix.pattern }}' -Dmaven.test.failure.ignore=true
       artifact_prefix: "unit-test-reports-jdk${{ matrix.jdk }}"
       jdk: ${{ matrix.jdk }}
-      key: "test-jdk${{ matrix.jdk }}-[${{ matrix.pattern }}]"
+      key: "unit-tests-jdk${{ matrix.jdk }}-[${{ matrix.pattern }}]"
       execute: ${{ matrix.jdk == '25' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'test-jdk21') }}
 
-  reporting-jacoco-coverage-failures:
-    name: "coverage-jacoco"
-    needs: [run-unit-tests, run-separated-tests]
+  coverage-jacoco:
+    needs: [unit-tests, quidem-tests]
     uses: ./.github/workflows/worker.yml
     if: ${{ success() && !contains( github.event.pull_request.labels.*.name, 'jacoco:skip') && github.event_name != 'push' }}
     with:
@@ -72,20 +72,21 @@ jobs:
       artifacts_to_download: "unit-test-reports-jdk25*"
       key: "coverage-jacoco"
 
-  run-separated-tests:
+  quidem-tests:
+    name: ${{ matrix.name }}
     needs: changes
     if: ${{ needs.changes.outputs.java == 'true' }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: "QTest 0/4"
+          - name: "quidem-tests-[0/4]"
             args: "-Dtest=QTest -Dquidem.split=0/4"
-          - name: "QTest 1/4"
+          - name: "quidem-tests-[1/4]"
             args: "-Dtest=QTest -Dquidem.split=1/4"
-          - name: "QTest 2/4"
+          - name: "quidem-tests-[2/4]"
             args: "-Dtest=QTest -Dquidem.split=2/4"
-          - name: "QTest 3/4"
+          - name: "quidem-tests-[3/4]"
             args: "-Dtest=QTest -Dquidem.split=3/4"
     uses: ./.github/workflows/worker.yml
     with:
@@ -115,6 +116,7 @@ jobs:
     uses: ./.github/workflows/docker-tests.yml
 
   packaging-check:
+    name: "packaging-check-jdk${{ matrix.jdk }}"
     strategy:
       fail-fast: false
       matrix:
